@@ -1,8 +1,195 @@
-﻿@{
+﻿@using WheelApp.Models.Employee
+@using System.Text.Json
+@model List<Employee>
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3" style="padding-right: 0;">
+            <h2>Leaderboard</h2>
+            <ul id="leaderboard" class="list-group">
+                @foreach (var employee in Model.OrderByDescending(e => e.WheelCount))
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                            <img src="@employee.ImagePath" alt="@employee.Name" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;">
+                            @employee.Name: @employee.WheelCount
+                        </span>
+                    </li>
+                }
+            </ul>
+        </div>
+        <div class="col-md-9">
+            <div id="wheel" style="width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+                <canvas id="wheelCanvas" width="800" height="800"></canvas>
+                <button id="spinButton" class="btn btn-primary mt-3">Spin the Wheel</button>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Winner Modal -->
+<div class="modal fade" id="winnerModal" tabindex="-1" role="dialog" aria-labelledby="winnerModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="winnerModalLabel">We Have a Winner!!!</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="winnerImage" src="" alt="Winner Image" style="max-width: 100%; height: auto;">
+                <h2 id="winnerMessage" class="mt-3"></h2>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        var employees = @Html.Raw(JsonSerializer.Serialize(Model));
+
+        var canvas = document.getElementById('wheelCanvas');
+        var ctx = canvas.getContext('2d');
+        var startAngle = 0;
+        var arc = Math.PI / (employees.length / 2);
+        var spinTimeout = null;
+
+        var spinAngleStart = 10;
+        var spinTime = 0;
+        var spinTimeTotal = 0;
+
+        function drawRouletteWheel() {
+            var outsideRadius = 350;
+            var textRadius = 300;
+            var insideRadius = 125;
+
+            ctx.clearRect(0, 0, 800, 800);
+
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+
+            ctx.font = 'bold 18px Helvetica, Arial';
+
+            for (var i = 0; i < employees.length; i++) {
+                var angle = startAngle + i * arc;
+                ctx.fillStyle = employees[i].Color; // Use the color from the Employee object
+
+                ctx.beginPath();
+                ctx.arc(400, 400, outsideRadius, angle, angle + arc, false);
+                ctx.arc(400, 400, insideRadius, angle + arc, angle, true);
+                ctx.stroke();
+                ctx.fill();
+
+                ctx.save();
+                ctx.fillStyle = "black";
+                ctx.translate(400 + Math.cos(angle + arc / 2) * textRadius,
+                    400 + Math.sin(angle + arc / 2) * textRadius);
+                ctx.rotate(angle + arc / 2 + Math.PI / 2);
+                var text = employees[i].Name;
+                ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
+                ctx.restore();
+            }
+
+            // Arrow
+            ctx.fillStyle = "red";
+            ctx.beginPath();
+            ctx.moveTo(400 - 4, 400 - (outsideRadius + 5));
+            ctx.lineTo(400 + 4, 400 - (outsideRadius + 5));
+            ctx.lineTo(400 + 4, 400 - (outsideRadius - 5));
+            ctx.lineTo(400 + 9, 400 - (outsideRadius - 5));
+            ctx.lineTo(400 + 0, 400 - (outsideRadius - 13));
+            ctx.lineTo(400 - 9, 400 - (outsideRadius - 5));
+            ctx.lineTo(400 - 4, 400 - (outsideRadius - 5));
+            ctx.lineTo(400 - 4, 400 - (outsideRadius + 5));
+            ctx.fill();
+        }
+
+        function spin() {
+            spinAngleStart = Math.random() * 10 + 10;
+            spinTime = 0;
+            spinTimeTotal = Math.random() * 3 + 8 * 1000;
+            rotateWheel();
+        }
+
+        function rotateWheel() {
+            spinTime += 30;
+            if (spinTime >= spinTimeTotal) {
+                stopRotateWheel();
+                return;
+            }
+            var spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
+            startAngle += (spinAngle * Math.PI / 180);
+            drawRouletteWheel();
+            spinTimeout = setTimeout(rotateWheel, 30);
+        }
+
+        function stopRotateWheel() {
+            clearTimeout(spinTimeout);
+            var degrees = startAngle * 180 / Math.PI + 90;
+            var arcd = arc * 180 / Math.PI;
+            var index = Math.floor((360 - degrees % 360) / arcd);
+            ctx.save();
+            ctx.font = 'bold 30px Helvetica, Arial';
+            var winner = employees[index];
+            document.getElementById('winnerMessage').innerText = winner.Name;
+            var winnerImage = document.getElementById('winnerImage');
+            winnerImage.src = winner.ImagePath;
+
+            // Increment the WheelCount for the winner
+            fetch(`/incrementWheelCount/${winner.Id}`, {
+                method: 'POST',
+            }).then(response => {
+                if (response.ok) {
+                    console.log('Wheel count incremented successfully');
+                    // Update the leaderboard
+                    winner.WheelCount++;
+                    updateLeaderboard();
+                } else {
+                    console.error('Failed to increment wheel count');
+                }
+            });
+
+            // Show the modal
+            $('#winnerModal').modal('show');
+            ctx.restore();
+        }
+
+        function updateLeaderboard() {
+            var leaderboard = document.getElementById('leaderboard');
+            leaderboard.innerHTML = ''; // Clear existing leaderboard
+
+            // Sort employees by WheelCount descending
+            employees.sort((a, b) => b.WheelCount - a.WheelCount);
+
+            employees.forEach(employee => {
+                var li = document.createElement('li');
+                li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+                li.innerHTML = `
+                    <span>
+                        <img src="${employee.ImagePath}" alt="${employee.Name}" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;">
+                        ${employee.Name}: ${employee.WheelCount}
+                    </span>
+                `;
+                leaderboard.appendChild(li);
+            });
+        }
+
+        function easeOut(t, b, c, d) {
+            var ts = (t /= d) * t;
+            var tc = ts * t;
+            return b + c * (tc + -3 * ts + 3 * t);
+        }
+
+        document.getElementById("spinButton").addEventListener("click", spin);
+
+        drawRouletteWheel();
+    </script>
+}
