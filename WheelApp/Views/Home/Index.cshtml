@@ -186,11 +186,11 @@
                 var li = document.createElement('li');
                 li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
                 li.innerHTML = `
-                            <span>
-                                <img src="${employee.ImagePath}" alt="${employee.Name}" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;">
-                                ${employee.Name}: ${employee.WheelCount}
-                            </span>
-                        `;
+                                    <span>
+                                        <img src="${employee.ImagePath}" alt="${employee.Name}" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;">
+                                        ${employee.Name}: ${employee.WheelCount}
+                                    </span>
+                                `;
                 leaderboard.appendChild(li);
             });
         }
