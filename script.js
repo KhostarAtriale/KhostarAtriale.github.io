@@ -60,6 +60,13 @@ document.addEventListener('DOMContentLoaded', function () {
         spinAngleStart = Math.random() * 10 + 10;
         spinTime = 0;
         spinTimeTotal = Math.random() * 3 + 8 * 1000;
+        confetti({
+            particleCount: 400,
+            angle: 270,
+            spread: 360,
+            origin: { y: 0 },
+            resize: true,     // Resize confetti canvas when window resizes
+        });
         rotateWheel();
     }
 
@@ -110,6 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Show the modal
         $('#winnerModal').modal('show');
+        handleLeaderBoardClick(winner);
         ctx.restore();
     }
     function incrementScoreForWinner(winnderId){
@@ -120,10 +128,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateLeaderboard() {
         const leaderboard = document.getElementById('leaderboard');
         leaderboard.innerHTML = ''; // Clear existing leaderboard
-
+    
         // Sort employees by WheelCount descending
         employees.sort((a, b) => b.WheelCount - a.WheelCount);
-
+    
         employees.forEach(employee => {
             const li = document.createElement('li');
             li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
@@ -133,8 +141,45 @@ document.addEventListener('DOMContentLoaded', function () {
                     ${employee.Name}: ${employee.WheelCount}
                 </span>
             `;
+    
+            // Add click event listener
+            li.addEventListener('click', () => handleLeaderBoardClick(employee));
+    
             leaderboard.appendChild(li);
         });
+    }
+
+    function handleLeaderBoardClick(employee) {
+        const body = document.querySelector('body');
+
+        switch (employee.Id) {
+            case 1:
+              body.style.backgroundImage = 'url("/images/patterns/MaoCosmos.jpg")';
+              break;
+            case 2:
+                body.style.backgroundImage = 'url("/images/patterns/ArchilNerd.jpg")';
+              break;
+            case 3:
+                body.style.backgroundImage = 'url("/images/patterns/MJKhostar.jpg")';
+              break;
+            case 4:
+                body.style.backgroundImage = 'url("/images/patterns/ArsenaMwvadi.jpg")';
+              break;
+            case 5:
+                body.style.backgroundImage = 'url("/images/patterns/TabagariChiatura.jpg")';
+              break;
+            case 6:
+                body.style.backgroundImage = 'url("/images/patterns/NikaMoto.jpg")';
+              break;
+            case 7:
+                body.style.backgroundImage = 'url("/images/patterns/MariamHello.jpg")';
+              break;
+            case 8:
+                body.style.backgroundImage = 'url("/images/patterns/ZuraGuns.jpg")';
+              break;
+            case 9:
+                body.style.backgroundImage = 'url("/images/patterns/BidzoCars.jpg")';
+          }
     }
 
     function easeOut(t, b, c, d) {
