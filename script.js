@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(function () {
             button.innerText = oldValue;
             button.removeAttribute('disabled');
-        }, 4000);
+        }, 8000);
     }
 
     function rotateWheel() {
