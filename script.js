@@ -1,65 +1,200 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const canvas = document.getElementById('wheelCanvas');
-    const ctx = canvas.getContext('2d');
-    let startAngle = 0;
-    const arc = Math.PI / (employees.length / 2);
-    let spinTimeout = null;
+    var startSeqs = {};
+var startNum = 0;
 
-    let spinAngleStart = 10;
-    let spinTime = 0;
-    let spinTimeTotal = 0;
+// Map employee data to image paths
+var imagePaths = employees.map(emp => emp.ImagePath);
 
-    function drawRouletteWheel() {
-        const outsideRadius = 350;
-        const textRadius = 300;
-        const insideRadius = 125;
+$.fn.playSpin = function (options) {
+    if (this.length) {
+        if ($(this).is(':animated')) return; // Return false if this element is animating
+        startSeqs['mainSeq' + (++startNum)] = {};
+        $(this).attr('data-playslot', startNum);
 
-        ctx.clearRect(0, 0, 800, 800);
+        var total = this.length;
+        var thisSeq = 0;
 
-        ctx.strokeStyle = "black";
-        ctx.lineWidth = 2;
-
-        ctx.font = 'bold 18px Helvetica, Arial';
-
-        for (let i = 0; i < employees.length; i++) {
-            const angle = startAngle + i * arc;
-            ctx.fillStyle = employees[i].Color;
-
-            ctx.beginPath();
-            ctx.arc(400, 400, outsideRadius, angle, angle + arc, false);
-            ctx.arc(400, 400, insideRadius, angle + arc, angle, true);
-            ctx.stroke();
-            ctx.fill();
-
-            ctx.save();
-            ctx.fillStyle = "black";
-            ctx.translate(400 + Math.cos(angle + arc / 2) * textRadius,
-                          400 + Math.sin(angle + arc / 2) * textRadius);
-            ctx.rotate(angle + arc / 2 + Math.PI / 2);
-            const text = employees[i].Name;
-            ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
-            ctx.restore();
+        // Initialize options
+        if (typeof options == 'undefined') {
+            options = {};
         }
 
-        // Arrow
-        ctx.fillStyle = "red";
-        ctx.beginPath();
-        ctx.moveTo(400 - 4, 400 - (outsideRadius + 5));
-        ctx.lineTo(400 + 4, 400 - (outsideRadius + 5));
-        ctx.lineTo(400 + 4, 400 - (outsideRadius - 5));
-        ctx.lineTo(400 + 9, 400 - (outsideRadius - 5));
-        ctx.lineTo(400 + 0, 400 - (outsideRadius - 13));
-        ctx.lineTo(400 - 9, 400 - (outsideRadius - 5));
-        ctx.lineTo(400 - 4, 400 - (outsideRadius - 5));
-        ctx.lineTo(400 - 4, 400 - (outsideRadius + 5));
-        ctx.fill();
+
+
+        // Pre-define end nums
+        var endIndex = Math.floor(Math.random() * imagePaths.length); // Pick a random image index
+        var endImages = Array(total).fill(imagePaths[endIndex]); // Fill all slots with the same image
+
+        startSeqs['mainSeq' + startNum]['totalSpinning'] = total;
+
+// Apply flicker effect
+var box = document.querySelector('.box');
+if (box) {
+    box.classList.add('flicker');
+    // Remove the flicker class after animation completes
+    setTimeout(() => {
+        box.classList.remove('flicker');
+    }, 15000); // Duration of the flicker animation
+}
+
+        return this.each(function () {
+            options.endImage = endImages[thisSeq];
+            startSeqs['mainSeq' + startNum]['subSeq' + (++thisSeq)] = {};
+            startSeqs['mainSeq' + startNum]['subSeq' + thisSeq]['spinning'] = true;
+            var track = {
+                total: total,
+                mainSeq: startNum,
+                subSeq: thisSeq
+            };
+            (new slotMachine(this, options, track));
+        });
+    }
+};
+
+$.fn.stopSpin = function () {
+    if (this.length) {
+        if (!$(this).is(':animated')) return; // Return false if this element is not animating
+        if ($(this)[0].hasAttribute('data-playslot')) {
+            $.each(startSeqs['mainSeq' + $(this).attr('data-playslot')], function(index, obj) {
+                obj['spinning'] = false;
+            });
+        }
+    }
+};
+
+var slotMachine = function (el, options, track) {
+    var slot = this;
+    slot.$el = $(el);
+
+    slot.defaultOptions = {
+        easing: 'swing',        // String: easing type for final spin
+        time: 3000,             // Number: total time of spin animation
+        loops: 6,               // Number: times it will spin during the animation
+        manualStop: false,      // Boolean: spin until user manually click to stop
+        useStopTime: false,     // Boolean: use stop time        
+        stopTime: 5000,         // Number: total time of stop animation
+        stopSeq: 'random',      // String: sequence of slot machine end animation, random, leftToRight, rightToLeft
+        endImage: "",           // String: image URL for end animation
+        onEnd : $.noop,         // Function: run on each element spin end, it is passed endImage
+        onFinish: $.noop,       // Function: run on all element spin end, it is passed endImage
+    };
+
+    slot.spinSpeed = 0;
+    slot.loopCount = 0;
+
+    slot.init = function () {
+        slot.options = $.extend({}, slot.defaultOptions, options);
+        slot.setup();
+        slot.startSpin();
+    };
+
+    slot.setup = function () {
+        var $li = slot.$el.find('li').first();
+        slot.liHeight = $li.innerHeight();
+        slot.liCount = slot.$el.children().length;
+        slot.listHeight = slot.liHeight * slot.liCount;
+        slot.spinSpeed = slot.options.time / slot.options.loops;
+
+        $li.clone().appendTo(slot.$el); // Clone to last row for smooth animation
+
+        // Configure stopSeq
+        if (slot.options.stopSeq == 'leftToRight') {
+            if (track.subSeq != 1) {
+                slot.options.manualStop = true;
+            }
+        } else if (slot.options.stopSeq == 'rightToLeft') {
+            if (track.total != track.subSeq) {
+                slot.options.manualStop = true;
+            }
+        }
+    };
+
+    slot.startSpin = function () {
+        slot.$el
+            .css('top', -slot.listHeight)
+            .animate({'top': '0px'}, slot.spinSpeed, 'linear', function () {
+                slot.lowerSpeed();
+            });
+            const element = document.querySelector('.slot-machine');
+            element.classList.add('animate__animated', 'animate__swing');
+            
+
+            setTimeout(() => {
+                element.classList.remove('animate__animated', 'animate__swing');
+            }, 5000);
+    };
+
+    slot.lowerSpeed = function () {
+        slot.loopCount++;
+
+        if (slot.loopCount < slot.options.loops ||
+            (slot.options.manualStop && startSeqs['mainSeq' + track.mainSeq]['subSeq' + track.subSeq]['spinning'])) {
+            slot.startSpin();
+        } else {
+            slot.endSpin();
+        }
+    };
+
+    slot.endSpin = function () {
+        var finalPos = -((slot.liHeight * imagePaths.length) - slot.liHeight);
+        var finalTime = ((slot.spinSpeed * 1.5) * (slot.liCount)) / imagePaths.length;
+        if (slot.options.useStopTime) {
+            finalTime = slot.options.stopTime;
+        }
+
+        slot.$el
+            .css('top', -slot.listHeight)
+            .animate({'top': finalPos}, parseInt(finalTime), slot.options.easing, function () {
+                slot.$el.find('li').last().remove(); // Remove the cloned row
+
+                slot.endAnimation(slot.options.endImage);
+                if ($.isFunction(slot.options.onEnd)) {
+                    slot.options.onEnd(slot.options.endImage);
+                }
+
+                // onFinish is every element is finished animation
+                if (startSeqs['mainSeq' + track.mainSeq]['totalSpinning'] == 0) {
+                    var totalImages = '';
+                    $.each(startSeqs['mainSeq' + track.mainSeq], function(index, subSeqs) {
+                        if (typeof subSeqs == 'object') {
+                            totalImages += subSeqs['endImage'].toString();
+                        }
+                    });
+                    if ($.isFunction(slot.options.onFinish)) {
+                        slot.options.onFinish(totalImages);
+                    }
+                }
+            });
     }
 
-    function spin(button) {
-        lockoutSubmit(button);
-        spinAngleStart = Math.random() * 10 + 10;
-        spinTime = 0;
-        spinTimeTotal = Math.random() * 3 + 8 * 1000;
+    slot.endAnimation = function(endImage) {
+        if (slot.options.stopSeq == 'leftToRight' && track.total != track.subSeq) {
+            startSeqs['mainSeq' + track.mainSeq]['subSeq' + (track.subSeq + 1)]['spinning'] = false;
+        } else if (slot.options.stopSeq == 'rightToLeft' && track.subSeq != 1) {
+            startSeqs['mainSeq' + track.mainSeq]['subSeq' + (track.subSeq - 1)]['spinning'] = false;
+        }
+        startSeqs['mainSeq' + track.mainSeq]['totalSpinning']--;
+        startSeqs['mainSeq' + track.mainSeq]['subSeq' + track.subSeq]['endImage'] = endImage;
+
+        // Update the slot with the end image
+        slot.$el.find('li').each(function() {
+          //  $(this).css('background-image', 'url(' + endImage + ')');
+          //  $(this).css('background-size', 'cover');
+        }); 
+        
+        slot.$el.find('li:last').css({
+            'background-image': 'url(' + endImage + ')',
+            'background-size': 'cover'
+        });
+
+         // INCREASE WINNER SCORE
+         let endImageEmployee = null;
+         for (let employee of employees) {
+            if (employee.ImagePath === endImage) {
+                endImageEmployee = employee;
+                break;
+            }
+        }
         confetti({
             particleCount: 400,
             angle: 270,
@@ -67,59 +202,82 @@ document.addEventListener('DOMContentLoaded', function () {
             origin: { y: 0 },
             resize: true,     // Resize confetti canvas when window resizes
         });
-        rotateWheel();
+        confetti({
+            particleCount: 100,
+            startVelocity: 30,
+            spread: 360,
+            origin: {
+              x: Math.random(),
+              // since they fall down, start a bit higher than random
+              y: Math.random() - 0.2
+            }
+          });
+          confetti({
+            particleCount: 100,
+            startVelocity: 30,
+            spread: 360,
+            origin: {
+              x: Math.random(),
+              // since they fall down, start a bit higher than random
+              y: Math.random() - 0.2
+            }
+          });
+          confetti({
+            particleCount: 100,
+            startVelocity: 30,
+            spread: 360,
+            origin: {
+              x: Math.random(),
+              // since they fall down, start a bit higher than random
+              y: Math.random() - 0.2
+            }
+          });
+          confetti({
+            particleCount: 100,
+            startVelocity: 30,
+            spread: 360,
+            origin: {
+              x: Math.random(),
+              // since they fall down, start a bit higher than random
+              y: Math.random() - 0.2
+            }
+          });
+
+        handleLeaderBoardClick(endImageEmployee);
+        incrementScoreForWinner(endImageEmployee.Id);
+        updateLeaderboard();
+
+          // Apply styles to the remaining <li> elements
+          let liElements = slot.$el.find('li');
+          let index = 0;
+  
+          for (let employee of employees) {
+              if (employee.Id !== endImageEmployee.Id) {
+                  $(liElements[index]).css({
+                      'background-image': 'url(' + employee.ImagePath + ')',
+                      'background-size': 'cover'
+                  });
+                  index++;
+              }
+          }
     }
 
-    function lockoutSubmit(button) {
-        const oldValue = button.innerText;
+    slot.randomRange = function (low, high) {
+        return Math.floor(Math.random() * (1 + high - low)) + low;
+    };
 
-        button.setAttribute('disabled', true);
-        button.innerText = 'Spinning...';
+    this.init();
+};
 
-        setTimeout(function () {
-            button.innerText = oldValue;
-            button.removeAttribute('disabled');
-        }, 8000);
-    }
+$('#btn-example1').click(function() {
+   $('#example1 ul').playSpin({
+      endImage: imagePaths[Math.floor(Math.random() * imagePaths.length)] // Use the same random image for all slots
+   });
+});
 
-    function rotateWheel() {
-        spinTime += 30;
-        if (spinTime >= spinTimeTotal) {
-            stopRotateWheel();
-            return;
-        }
-        const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
-        startAngle += (spinAngle * Math.PI / 180);
-        drawRouletteWheel();
-        spinTimeout = setTimeout(rotateWheel, 30);
-    }
+    updateLeaderboard();
+    // MY FUNCTIONS
 
-    function stopRotateWheel() {
-        clearTimeout(spinTimeout);
-        const degrees = startAngle * 180 / Math.PI + 90;
-        const arcd = arc * 180 / Math.PI;
-        const index = Math.floor((360 - degrees % 360) / arcd);
-        ctx.save();
-        ctx.font = 'bold 30px Helvetica, Arial';
-        const winner = employees[index];
-        document.getElementById('winnerMessage').innerText = winner.Name;
-        const winnerImage = document.getElementById('winnerImage');
-        winnerImage.src = winner.ImagePath;
-
-        // Set the modal background color to the winner's color
-        const winnerModalBody = document.getElementById('winnerModalBody');
-        winnerModalBody.style.backgroundColor = winner.Color;
-
-        // Increment the WheelCount for the winner
-                incrementScoreForWinner(winner.Id);
-                updateLeaderboard();
-
-
-        // Show the modal
-        $('#winnerModal').modal('show');
-        handleLeaderBoardClick(winner);
-        ctx.restore();
-    }
     function incrementScoreForWinner(winnderId){
         const index = employees.findIndex(employee => employee.Id === winnderId);
         employees[index].WheelCount += 1;
@@ -138,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function () {
             li.innerHTML = `
                 <span>
                     <img src="${employee.ImagePath}" alt="${employee.Name}" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;">
-                    ${employee.Name}: ${employee.WheelCount}
+                    ${employee.Name}: ${(employee.WheelCount/3).toFixed(0)}
                 </span>
             `;
     
@@ -181,17 +339,4 @@ document.addEventListener('DOMContentLoaded', function () {
                 body.style.backgroundImage = 'url("/images/patterns/BidzoCars.jpg")';
           }
     }
-
-    function easeOut(t, b, c, d) {
-        const ts = (t /= d) * t;
-        const tc = ts * t;
-        return b + c * (tc + -3 * ts + 3 * t);
-    }
-
-    document.getElementById("spinButton").addEventListener("click", function () {
-        spin(this);
-    });
-
-    drawRouletteWheel();
-    updateLeaderboard();
 });

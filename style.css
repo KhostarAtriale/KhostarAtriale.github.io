@@ -1,8 +1,9 @@
 body {
-    padding-top: 70px; /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
     background-image: url('/images/pattern.jpg');
     background-repeat: repeat;
     font-family: 'Source Sans Pro', sans-serif;
+    height: 100%;
+    margin: 0;
 }
 
 
@@ -89,7 +90,7 @@ footer {
 #leaderboard {
     list-style-type: none;
     padding: 0;
-    margin: 0;
+    margin: 100px 0 0 0;
 }
 
 .list-group-item {
@@ -101,3 +102,121 @@ footer {
     background-color: #509fe9;
 }
 
+/* MINE */
+.container-fluid {
+    height: 100%;
+    width: 95%;
+    padding: 0; /* Remove default padding */
+    margin: 0; /* Remove default margin */
+}
+.slot-machine {
+    max-width: 2200px; /* Increased from 400px */
+    width: fit-content;
+    margin: 0 auto;
+    position: relative;
+}
+
+.slot-machine > img {
+    display: block;
+    position: relative;
+    right: -20px;
+    top: 20px;
+}
+
+.slotwrapper {
+    position: absolute;
+    overflow: hidden;
+    display: flex;
+    height: 300px; /* Increased from 200px */
+    width: 93%; /* Adjusted to fit the width of the container */
+    bottom: 20px;
+    padding: 0 25px;
+    margin-left: 22px;
+    background: #fff;
+}
+
+.slotwrapper ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    position: relative;
+    float: left;
+    width: 200px; /* Increased from 200px */
+    height: 200px; /* Increased from 200px */
+    line-height: 300px; /* Adjusted to match height */
+    text-align: center;
+}
+.slotwrapper ul li {
+    width: 100%; /* Ensure images fill the container */
+    height: 140%;
+    object-fit: cover; /* Choose the desired behavior */
+  }
+.slotwrapper ul li img {
+    vertical-align: top;
+    max-width: 100%; /* Ensures the image fits within the container */
+    height: auto;
+}
+
+.slotwrapper > ul > li {
+    background: #fff;
+    font-size: 0.5em;
+}
+
+.slot-machine-btn  {
+    position: absolute;
+    top: 50%;
+    right: -70px;
+    transform: translate(0, -50%);
+    background: transparent;
+    border: none;
+    width: 100px; /* Increased from 80px */
+    margin-top: 70px;
+    transition: 0.4s all ease-in-out;
+}
+
+.slot-machine-btn.clicked {
+    transform: translate(0, -50%) rotateX(190deg);
+}
+
+button#btn-example1:hover > img {
+    filter: drop-shadow(2px 4px 6px yellow);
+}
+
+button#btn-example1 > img {
+    transition: 0.4s all ease-in-out;
+    user-select: none;
+}
+
+:not(button) img {
+    pointer-events: none;
+}
+button:focus {
+    /* outline: 1px dotted; */
+    /* outline-color: initial; */
+    /* outline-style: dotted; */
+    /* outline-width: 1px; */
+    /* outline: 5px auto -webkit-focus-ring-color; */
+    /* outline-color: -webkit-focus-ring-color; */
+    /* outline-style: auto; */
+    /* outline-width: 5px; */
+    outline: none;
+}
+
+.box {
+    width: 8rem;
+  height: 6rem;
+  background-color: #a31f08;
+  border-radius: 10rem 10rem 0 0;
+  margin-right: -0px;
+  margin-bottom: -125px;
+  z-index: 111;
+  }
+  .flicker {
+    animation: flickerAnimation 15.5s;
+}
+
+@keyframes flickerAnimation {
+    0% { background-color: #a31f08; }
+    50% { background-color: rgb(17, 0, 255); }
+    100% { background-color: rgb(255, 187, 0); }
+}

@@ -14,19 +14,66 @@
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
   />
+  
 </head>
 <body>
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-3" style="padding-right: 0;">
-                <h2 style="color: #fa0000;">Leaderboard</h2>
-                <ul id="leaderboard" class="list-group">
+                <h2 style="color: #fa0000;"></h2>
+                <ul class ="animate__animated animate__bounceInUp" id="leaderboard" class="list-group">
                 </ul>
             </div>
             <div class="col-md-9">
-                <div id="wheel" style="width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; flex-direction: column;">
-                    <canvas id="wheelCanvas" width="800" height="800"></canvas>
-                    <button id="spinButton" class="btn btn-primary mt-3">Spin the Wheel</button>
+                <div id="wheel" style="width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; flex-direction: column; margin-top: -120px;">
+                 <div class='box animate__animated animate__bounce'></div>
+                    
+                    <div class="mainContainer">
+                        <div class="loader-container">
+                        </div>
+                        <div class="slot-machine  animate__animated animate__bounce">
+                          <div class="slotwrapper" id="example1"> 
+                            <ul>
+                                <li style="background-image: url(&quot;/images/khostar.jpg&quot;); background-size: cover;">1</li>
+                                <li style="background-image: url(&quot;/images/kirakosian.jpg&quot;); background-size: cover;">2</li>
+                                <li style="background-image: url(&quot;/images/mao.jpg&quot;); background-size: cover;">3</li>
+                                <li style="background-image: url(&quot;/images/arsena.jpg&quot;); background-size: cover;">4</li>
+                                <li style="background-image: url(&quot;/images/tabagari.jpg&quot;); background-size: cover;">5</li>
+                                <li style="background-image: url(&quot;/images/mariam.jpg&quot;); background-size: cover;">6</li>
+                                <li style="background-image: url(&quot;/images/archil.jpg&quot;); background-size: cover;">9</li>
+                                <li style="background-image: url(&quot;/images/zura.jpg&quot;); background-size: cover;">7</li>
+                                <li style="background-image: url(&quot;/images/bidzina.jpg&quot;); background-size: cover;">8</li>
+                            </ul>
+                            <ul>
+                                <li style="background-image: url(&quot;/images/khostar.jpg&quot;); background-size: cover;">1</li>
+                                <li style="background-image: url(&quot;/images/kirakosian.jpg&quot;); background-size: cover;">2</li>
+                                <li style="background-image: url(&quot;/images/mao.jpg&quot;); background-size: cover;">3</li>
+                                <li style="background-image: url(&quot;/images/arsena.jpg&quot;); background-size: cover;">4</li>
+                                <li style="background-image: url(&quot;/images/tabagari.jpg&quot;); background-size: cover;">5</li>
+                                <li style="background-image: url(&quot;/images/mariam.jpg&quot;); background-size: cover;">6</li>
+                                <li style="background-image: url(&quot;/images/archil.jpg&quot;); background-size: cover;">9</li>
+                                <li style="background-image: url(&quot;/images/zura.jpg&quot;); background-size: cover;">7</li>
+                                <li style="background-image: url(&quot;/images/bidzina.jpg&quot;); background-size: cover;">8</li>
+                            </ul>
+                            <ul>
+                                <li style="background-image: url(&quot;/images/khostar.jpg&quot;); background-size: cover;">1</li>
+                                <li style="background-image: url(&quot;/images/kirakosian.jpg&quot;); background-size: cover;">2</li>
+                                <li style="background-image: url(&quot;/images/mao.jpg&quot;); background-size: cover;">3</li>
+                                <li style="background-image: url(&quot;/images/arsena.jpg&quot;); background-size: cover;">4</li>
+                                <li style="background-image: url(&quot;/images/tabagari.jpg&quot;); background-size: cover;">5</li>
+                                <li style="background-image: url(&quot;/images/mariam.jpg&quot;); background-size: cover;">6</li>
+                                <li style="background-image: url(&quot;/images/archil.jpg&quot;); background-size: cover;">9</li>
+                                <li style="background-image: url(&quot;/images/zura.jpg&quot;); background-size: cover;">7</li>
+                                <li style="background-image: url(&quot;/images/bidzina.jpg&quot;); background-size: cover;">8</li>
+                            </ul>
+                          </div>
+                          <img src="https://i.ibb.co/MfSZ71p/7670530.png" alt="" class="w-100">
+                          <button type="button" class="slot-machine-btn" id="btn-example1">
+                            <img src="https://i.ibb.co/0VTc2LZ/spin-btn.png" alt="" class="w-100">
+                          </button>
+                        </div>
+                        
+                      </div>
                 </div>
             </div>
         </div>
@@ -50,7 +97,7 @@
             </div>
         </div>
     </div>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
     <script src="data.js"></script>
     <script src="script.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
